@@ -83,8 +83,7 @@ namespace Plugin.SegmentedControl.Maui.Utils
             // is part of the NavigationStack or the ModalStack.
             {
                 var mainPage = Application.Current.MainPage;
-                var navigation = mainPage.Navigation;
-                var pages = PageHelper.GetNavigationTree(navigation, mainPage).ToArray();
+                var pages = PageHelper.GetNavigationTree(mainPage).ToArray();
                 var pageExists = pages.Any(p => p == targetPage);
                 return pageExists;
             }
@@ -110,7 +109,7 @@ namespace Plugin.SegmentedControl.Maui.Utils
                 }
             }
 
-            return hashSet;
+            return hashSet.Where(p => p != null);
         }
 
         private static IEnumerable<Page> WalkToPage(Element element)
@@ -126,7 +125,10 @@ namespace Plugin.SegmentedControl.Maui.Utils
                 case ShellSection shellSection:
                     IShellSectionController controller = shellSection;
                     var children = controller.GetItems().OfType<IShellContentController>();
-                    return children.Select(c => c.Page);
+                    var childPages = children
+                        .Select(c => c.Page)
+                        .SelectMany(p => PageHelper.GetNavigationTree(p));
+                    return childPages;
             }
 
             return [];
